@@ -26,6 +26,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
+      <fileTypeFactory implementation="com.simpleplugin.SimpleFileTypeFactory"/>
   </extensions>
 
   <application-components>
