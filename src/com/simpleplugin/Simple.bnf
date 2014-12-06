@@ -11,20 +11,39 @@
   elementTypeHolderClass="com.simpleplugin.psi.SimpleTypes"
   elementTypeClass="com.simpleplugin.psi.SimpleElementType"
   tokenTypeClass="com.simpleplugin.psi.SimpleTokenType"
+
+  tokens = [
+    SEMICOLON =';'
+    EQ = '='
+
+    number="regexp:\d+"
+    id="regexp:\w+"
+    string="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\\"|\\\'|\\)*\")"
+
+    line_comment="regexp://.*"
+    block_comment="regexp:/\*(.|\n)*\*/"
+  ]
+
 }
 
 
 simpleFile ::= item_*
 
-private item_ ::= (property|COMMENT|CRLF)
+private item_ ::= (property|COMMENT|CRLF|property1)
 
-property ::= (KEY? SEPARATOR VALUE?) | KEY | expr
+property ::= (KEY? SEPARATOR VALUE?) | KEY
 
-expr::= <symbol> <EQ> <digit> <EOL>
-<EOL>::=';'
-<EQ>::='='
-<digit> ::= '0' | '1' | '2' | '3' | '4'| '5' | '6' | '7' | '8' | '9'
-//<identificator> ::= <symbol> | <symbol> <identificator>
-<symbol> ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | r | q | s | t | u | v | w | x | y | z
+private item_ ::= property1 {
+recoverWhile=top_recover
+}
+
+private top_recover ::= !(id "=")
+
+property1 ::= expr
+
+expr::= id "=" number ";"
+
+
+
 
 

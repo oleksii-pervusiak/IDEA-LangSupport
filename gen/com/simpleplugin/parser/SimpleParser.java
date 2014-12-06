@@ -22,8 +22,14 @@ public class SimpleParser implements PsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, null);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t == PROPERTY) {
+    if (t == EXPR) {
+      r = expr(b, 0);
+    }
+    else if (t == PROPERTY) {
       r = property(b, 0);
+    }
+    else if (t == PROPERTY_1) {
+      r = property1(b, 0);
     }
     else {
       r = parse_root_(t, b, 0);
@@ -36,7 +42,22 @@ public class SimpleParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // property|COMMENT|CRLF
+  // id "=" number ";"
+  public static boolean expr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "expr")) return false;
+    if (!nextTokenIs(b, ID)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, ID);
+    r = r && consumeToken(b, EQ);
+    r = r && consumeToken(b, NUMBER);
+    r = r && consumeToken(b, SEMICOLON);
+    exit_section_(b, m, EXPR, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // property|COMMENT|CRLF|property1
   static boolean item_(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "item_")) return false;
     boolean r;
@@ -44,6 +65,7 @@ public class SimpleParser implements PsiParser {
     r = property(b, l + 1);
     if (!r) r = consumeToken(b, COMMENT);
     if (!r) r = consumeToken(b, CRLF);
+    if (!r) r = property1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -88,6 +110,18 @@ public class SimpleParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // expr
+  public static boolean property1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "property1")) return false;
+    if (!nextTokenIs(b, ID)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = expr(b, l + 1);
+    exit_section_(b, m, PROPERTY_1, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // item_*
   static boolean simpleFile(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "simpleFile")) return false;
@@ -98,6 +132,28 @@ public class SimpleParser implements PsiParser {
       c = current_position_(b);
     }
     return true;
+  }
+
+  /* ********************************************************** */
+  // !(id "=")
+  static boolean top_recover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "top_recover")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_, null);
+    r = !top_recover_0(b, l + 1);
+    exit_section_(b, l, m, null, r, false, null);
+    return r;
+  }
+
+  // id "="
+  private static boolean top_recover_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "top_recover_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, ID);
+    r = r && consumeToken(b, EQ);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
 }
